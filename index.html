@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #f76f53;
+            --secondary-color: #1e1e1e;
+            --accent-color: #f76f53;
+            --light-color: #ffffff;
+            --dark-color: #1e1e1e;
+            --transition-duration: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            border-radius: 4px 4px 0 0;
+            font-weight: 600;
+            transition: all var(--transition-duration) ease;
+            margin-right: 0.25rem;
+            position: relative;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: #e6e6e6;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn var(--transition-duration) ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dropzone {
+            border: 3px dashed var(--secondary-color);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            transition: all var(--transition-duration) ease;
+            cursor: pointer;
+            background-color: #ffffff;
+            animation: pulse 2s infinite;
+        }
+
+        .dropzone:hover {
+            background-color: #e6e6e6;
+        }
+
+        .dropzone p {
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .dropzone input {
+            display: none;
+        }
+
+        .settings-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px #1e1e1e8e;
+            animation: fadeInUp var(--transition-duration) ease-out;
+        }
+
+        .settings-panel h3 {
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input[type="range"],
+        .form-group input[type="text"],
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            transition: border-color var(--transition-duration) ease;
+        }
+
+        .form-group input[type="range"] {
+            padding: 0;
+        }
+
+        .form-group input[type="range"]:focus,
+        .form-group input[type="text"]:focus,
+        .form-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .range-value {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-group label {
+            margin-left: 0.5rem;
+            margin-bottom: 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-duration) ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background-color: #1e1e1e;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #1e1e1e;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .output-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            animation: fadeInUp var(--transition-duration) ease-out;
+        }
+
+        .output-section h3 {
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        #ascii-output {
+            background-color: #e6e6e6;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.2;
+            min-height: 300px;
+            font-size: 0.8rem; /* Adjust the font size */
+        }
+
+        #ascii-output.tight {
+            font-size: 0.6rem; /* Smaller font size for tightly packed ASCII */
+            line-height: 1; /* Reduced line height */
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex-grow: 1;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+    </header>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="image-tab">
+                <i class="fas fa-image"></i> Image to ASCII
+            </button>
+            <button class="tab" data-tab="video-tab">
+                <i class="fas fa-video"></i> Video to ASCII
+            </button>
+        </div>
+
+        <!-- Image Tab -->
+        <div id="image-tab" class="tab-content active">
+            <div class="dropzone" id="image-dropzone">
+                <p><i class="fas fa-upload"></i> Drag and drop an image file here, or click to select</p>
+                <input type="file" id="image-upload" accept="image/*">
+                <img id="preview-image" style="max-width: 300px; display: none; margin: 0 auto;">
+            </div>
+
+            <div class="settings-panel">
+                <h3>Settings</h3>
+                <div class="form-group">
+                    <label for="image-width">Width (characters): <span class="range-value" id="image-width-value">115</span></label>
+                    <input type="range" id="image-width" min="20" max="200" value="115">
+                </div>
+                <div class="form-group">
+                    <label for="image-contrast">Contrast: <span class="range-value" id="image-contrast-value">1</span></label>
+                    <input type="range" id="image-contrast" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="image-chars">Character Set:</label>
+                    <select id="image-chars">
+                        <option value="blocks" selected>Blocks (█▓▒░ ) [Best Quality]</option>
+                        <option value="standard">Standard (@%#*+=-:. )</option>
+                        <option value="simple">Simple (#. )</option>
+                        <option value="complex">Complex (@%#*+=-:.~^`' )</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-chars-group" style="display: none;">
+                    <label for="custom-chars">Custom Characters:</label>
+                    <input type="text" id="custom-chars" value="@%#*+=-:. ">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="image-invert">
+                    <label for="image-invert">Invert Colors</label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="image-color" checked>
+                    <label for="image-color">Colored Output [Recommended]</label>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn" id="generate-image-ascii"><i class="fas fa-magic"></i> Generate ASCII Art</button>
+                    <button class="btn btn-secondary" id="download-image-ascii"><i class="fas fa-download"></i> Download as PNG</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Tab -->
+        <div id="video-tab" class="tab-content">
+            <div class="dropzone" id="video-dropzone">
+                <p><i class="fas fa-upload"></i> Drag and drop a video file here, or click to select</p>
+                <input type="file" id="video-upload" accept="video/*">
+                <video id="preview-video" style="max-width: 300px; display: none; margin: 0 auto;" controls></video>
+            </div>
+
+            <div class="settings-panel">
+                <h3>Settings</h3>
+                <div class="form-group">
+                    <label for="video-width">Width (characters): <span class="range-value" id="video-width-value">115</span></label>
+                    <input type="range" id="video-width" min="20" max="200" value="115">
+                </div>
+                <div class="form-group">
+                    <label for="video-fps">FPS: <span class="range-value" id="video-fps-value">30</span></label>
+                    <input type="range" id="video-fps" min="5" max="30" value="30">
+                </div>
+                <div class="form-group">
+                    <label for="video-chars">Character Set:</label>
+                    <select id="video-chars">
+                        <option value="blocks" selected>Blocks (█▓▒░ ) [Best Quality]</option>
+                        <option value="standard">Standard (@%#*+=-:. )</option>
+                        <option value="simple">Simple (#. )</option>
+                        <option value="complex">Complex (@%#*+=-:.~^`' )</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group" id="video-custom-chars-group" style="display: none;">
+                    <label for="video-custom-chars">Custom Characters:</label>
+                    <input type="text" id="video-custom-chars" value="@%#*+=-:. ">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="video-invert">
+                    <label for="video-invert">Invert Colors</label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="video-color" checked>
+                    <label for="video-color">Colored Output [Recommended]</label>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn" id="generate-video-ascii"><i class="fas fa-magic"></i> Generate ASCII Video</button>
+                    <button class="btn" id="stop-video-ascii" style="display: none;"><i class="fas fa-stop"></i> Stop Playback</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Generating ASCII art, please wait...</p>
+        </div>
+
+        <div class="output-section">
+            <h3>Output</h3>
+            <pre id="ascii-output"></pre>
+        </div>
+    </div>
+
+    <script>
+        // ASCIIart.js functionality (simplified version for demo)
+        class ASCIIart {
+            constructor() {
+                this.defaultCharset = '@%#*+=-:. ';
+                this.charsets = {
+                    'standard': '@%#*+=-:. ',
+                    'simple': '#. ',
+                    'complex': '@%#*+=-:.~^`\' ',
+                    'blocks': '█▓▒░ '
+                };
+            }
+
+            convertImageToASCII(image, options) {
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Set dimensions based on desired width
+                    const ratio = image.width / image.height;
+                    const width = options.width;
+                    const height = Math.floor(width / ratio / 2);  // Adjust for character aspect ratio
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Apply contrast
+                    ctx.filter = `contrast(${options.contrast})`;
+
+                    // Draw image to canvas
+                    ctx.drawImage(image, 0, 0, width, height);
+
+                    // Get image data
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    const data = imageData.data;
+
+                    // Get character set
+                    let chars;
+                    if (options.charset === 'custom') {
+                        chars = options.customChars || this.defaultCharset;
+                    } else {
+                        chars = this.charsets[options.charset] || this.defaultCharset;
+                    }
+
+                    if (options.invert) {
+                        chars = chars.split('').reverse().join('');
+                    }
+
+                    let asciiImage = '';
+                    let colors = [];
+
+                    // Convert pixels to ASCII
+                    for (let y = 0; y < height; y++) {
+                        let row = '';
+                        let rowColors = [];
+
+                        for (let x = 0; x < width; x++) {
+                            const idx = (y * width + x) * 4;
+                            const r = data[idx];
+                            const g = data[idx + 1];
+                            const b = data[idx + 2];
+
+                            // Convert to grayscale and map to character
+                            const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                            const charIndex = Math.floor(brightness / 255 * (chars.length - 1));
+                            const char = chars[charIndex];
+
+                            row += char;
+                            rowColors.push(`rgb(${r},${g},${b})`);
+                        }
+
+                        asciiImage += row + '\n';
+                        colors.push(rowColors);
+                    }
+
+                    resolve({ ascii: asciiImage, colors: colors });
+                });
+            }
+
+            convertVideoToASCII(video, frame, options) {
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Set dimensions based on desired width
+                    const ratio = video.videoWidth / video.videoHeight;
+                    const width = options.width;
+                    const height = Math.floor(width / ratio / 2);  // Adjust for character aspect ratio
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Apply contrast
+                    ctx.filter = `contrast(${options.contrast || 1})`;
+
+                    // Draw current video frame to canvas
+                    ctx.drawImage(video, 0, 0, width, height);
+
+                    // Get image data
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    const data = imageData.data;
+
+                    // Get character set
+                    let chars;
+                    if (options.charset === 'custom') {
+                        chars = options.customChars || this.defaultCharset;
+                    } else {
+                        chars = this.charsets[options.charset] || this.defaultCharset;
+                    }
+
+                    if (options.invert) {
+                        chars = chars.split('').reverse().join('');
+                    }
+
+                    let asciiFrame = '';
+                    let colors = [];
+
+                    // Convert pixels to ASCII
+                    for (let y = 0; y < height; y++) {
+                        let row = '';
+                        let rowColors = [];
+
+                        for (let x = 0; x < width; x++) {
+                            const idx = (y * width + x) * 4;
+                            const r = data[idx];
+                            const g = data[idx + 1];
+                            const b = data[idx + 2];
+
+                            // Convert to grayscale and map to character
+                            const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                            const charIndex = Math.floor(brightness / 255 * (chars.length - 1));
+                            const char = chars[charIndex];
+
+                            row += char;
+                            rowColors.push(`rgb(${r},${g},${b})`);
+                        }
+
+                        asciiFrame += row + '\n';
+                        colors.push(rowColors);
+                    }
+
+                    resolve({ ascii: asciiFrame, colors: colors });
+                });
+            }
+        }
+
+        // Main application code
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize ASCIIart.js
+            const asciiArt = new ASCIIart();
+
+            // Tab switching logic
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to current tab and content
+                    tab.classList.add('active');
+                    const contentId = tab.getAttribute('data-tab');
+                    document.getElementById(contentId).classList.add('active');
+                });
+            });
+
+            // Image dropzone logic
+            const imageDropzone = document.getElementById('image-dropzone');
+            const imageUpload = document.getElementById('image-upload');
+            const previewImage = document.getElementById('preview-image');
+
+            imageDropzone.addEventListener('click', () => {
+                imageUpload.click();
+            });
+
+            imageDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.2)';
+            });
+
+            imageDropzone.addEventListener('dragleave', () => {
+                imageDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.05)';
+            });
+
+            imageDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.05)';
+
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        imageUpload.files = e.dataTransfer.files;
+                        displayImagePreview(file);
+                    }
+                }
+            });
+
+            imageUpload.addEventListener('change', () => {
+                if (imageUpload.files.length > 0) {
+                    displayImagePreview(imageUpload.files[0]);
+                }
+            });
+
+            function displayImagePreview(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    imageDropzone.querySelector('p').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Video dropzone logic
+            const videoDropzone = document.getElementById('video-dropzone');
+            const videoUpload = document.getElementById('video-upload');
+            const previewVideo = document.getElementById('preview-video');
+
+            videoDropzone.addEventListener('click', () => {
+                videoUpload.click();
+            });
+
+            videoDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                videoDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.2)';
+            });
+
+            videoDropzone.addEventListener('dragleave', () => {
+                videoDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.05)';
+            });
+
+            videoDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                videoDropzone.style.backgroundColor = 'rgba(98, 0, 234, 0.05)';
+
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('video/')) {
+                        videoUpload.files = e.dataTransfer.files;
+                        displayVideoPreview(file);
+                    }
+                }
+            });
+
+            videoUpload.addEventListener('change', () => {
+                if (videoUpload.files.length > 0) {
+                    displayVideoPreview(videoUpload.files[0]);
+                }
+            });
+
+            function displayVideoPreview(file) {
+                const url = URL.createObjectURL(file);
+                previewVideo.src = url;
+                previewVideo.style.display = 'block';
+                videoDropzone.querySelector('p').style.display = 'none';
+            }
+
+            // Range sliders
+            const rangeSliders = document.querySelectorAll('input[type="range"]');
+            rangeSliders.forEach(slider => {
+                const valueDisplay = document.getElementById(`${slider.id}-value`);
+                if (valueDisplay) {
+                    valueDisplay.textContent = slider.value;
+                    slider.addEventListener('input', () => {
+                        valueDisplay.textContent = slider.value;
+                    });
+                }
+            });
+
+            // Custom character set logic
+            const imageCharsSelect = document.getElementById('image-chars');
+            const customCharsGroup = document.getElementById('custom-chars-group');
+
+            imageCharsSelect.addEventListener('change', () => {
+                if (imageCharsSelect.value === 'custom') {
+                    customCharsGroup.style.display = 'block';
+                } else {
+                    customCharsGroup.style.display = 'none';
+                }
+            });
+
+            const videoCharsSelect = document.getElementById('video-chars');
+            const videoCustomCharsGroup = document.getElementById('video-custom-chars-group');
+
+            videoCharsSelect.addEventListener('change', () => {
+                if (videoCharsSelect.value === 'custom') {
+                    videoCustomCharsGroup.style.display = 'block';
+                } else {
+                    videoCustomCharsGroup.style.display = 'none';
+                }
+            });
+
+            // Generate Image ASCII button
+            const generateImageASCII = document.getElementById('generate-image-ascii');
+            const asciiOutput = document.getElementById('ascii-output');
+            const loading = document.querySelector('.loading');
+
+            generateImageASCII.addEventListener('click', async () => {
+                if (!previewImage.src) {
+                    alert('Please upload an image first');
+                    return;
+                }
+
+                // Show loading indicator
+                loading.style.display = 'block';
+
+                // Get settings
+                const width = parseInt(document.getElementById('image-width').value);
+                const contrast = parseFloat(document.getElementById('image-contrast').value);
+                const charset = document.getElementById('image-chars').value;
+                const customChars = document.getElementById('custom-chars').value;
+                const invert = document.getElementById('image-invert').checked;
+                const colored = document.getElementById('image-color').checked;
+
+                // Convert image to ASCII
+                const options = {
+                    width: width,
+                    contrast: contrast,
+                    charset: charset,
+                    customChars: customChars,
+                    invert: invert
+                };
+
+                try {
+                    const result = await asciiArt.convertImageToASCII(previewImage, options);
+
+                    // Display ASCII art
+                    asciiOutput.textContent = result.ascii;
+
+                    // Apply colors if needed
+                    if (colored) {
+                        asciiOutput.innerHTML = '';
+                        asciiOutput.classList.add('colored');
+
+                        const lines = result.ascii.split('\n');
+                        for (let y = 0; y < lines.length; y++) {
+                            const line = lines[y];
+                            const lineDiv = document.createElement('div');
+
+                            for (let x = 0; x < line.length; x++) {
+                                const char = line[x];
+                                const span = document.createElement('span');
+                                span.textContent = char;
+
+                                if (result.colors[y] && result.colors[y][x]) {
+                                    span.style.color = result.colors[y][x];
+                                }
+
+                                lineDiv.appendChild(span);
+                            }
+
+                            asciiOutput.appendChild(lineDiv);
+                        }
+                    } else {
+                        asciiOutput.classList.remove('colored');
+                    }
+
+                    // Apply tight class if width is 200
+                    if (width === 200) {
+                        asciiOutput.classList.add('tight');
+                    } else {
+                        asciiOutput.classList.remove('tight');
+                    }
+                } catch (error) {
+                    console.error('Error generating ASCII art:', error);
+                    alert('Error generating ASCII art. Please try again.');
+                } finally {
+                    // Hide loading indicator
+                    loading.style.display = 'none';
+                }
+            });
+
+            // Generate Video ASCII button
+            const generateVideoASCII = document.getElementById('generate-video-ascii');
+            const stopVideoASCII = document.getElementById('stop-video-ascii');
+            let isVideoPlaying = false;
+            let videoInterval;
+
+            generateVideoASCII.addEventListener('click', () => {
+                if (!previewVideo.src) {
+                    alert('Please upload a video first');
+                    return;
+                }
+
+                if (isVideoPlaying) {
+                    return;
+                }
+
+                // Get settings
+                const width = parseInt(document.getElementById('video-width').value);
+                const fps = parseInt(document.getElementById('video-fps').value);
+                const charset = document.getElementById('video-chars').value;
+                const customChars = document.getElementById('video-custom-chars').value;
+                const invert = document.getElementById('video-invert').checked;
+                const colored = document.getElementById('video-color').checked;
+
+                // Start video
+                previewVideo.currentTime = 0;
+                previewVideo.play();
+
+                // Show stop button
+                generateVideoASCII.style.display = 'none';
+                stopVideoASCII.style.display = 'inline-block';
+
+                isVideoPlaying = true;
+
+                // Create options object
+                const options = {
+                    width: width,
+                    contrast: 1,
+                    charset: charset,
+                    customChars: customChars,
+                    invert: invert
+                };
+
+                // Process frames at specified FPS
+                const frameInterval = 1000 / fps;
+                let frameCount = 0;
+
+                videoInterval = setInterval(async () => {
+                    if (previewVideo.paused || previewVideo.ended) {
+                        clearInterval(videoInterval);
+                        isVideoPlaying = false;
+                        generateVideoASCII.style.display = 'inline-block';
+                        stopVideoASCII.style.display = 'none';
+                        return;
+                    }
+
+                    // Convert current frame to ASCII
+                    try {
+                        const result = await asciiArt.convertVideoToASCII(previewVideo, frameCount, options);
+
+                        // Display ASCII art
+                        if (colored) {
+                            asciiOutput.innerHTML = '';
+                            asciiOutput.classList.add('colored');
+
+                            const lines = result.ascii.split('\n');
+                            for (let y = 0; y < lines.length; y++) {
+                                const line = lines[y];
+                                const lineDiv = document.createElement('div');
+
+                                for (let x = 0; x < line.length; x++) {
+                                    const char = line[x];
+                                    const span = document.createElement('span');
+                                    span.textContent = char;
+
+                                    if (result.colors[y] && result.colors[y][x]) {
+                                        span.style.color = result.colors[y][x];
+                                    }
+
+                                    lineDiv.appendChild(span);
+                                }
+
+                                asciiOutput.appendChild(lineDiv);
+                            }
+                        } else {
+                            asciiOutput.textContent = result.ascii;
+                            asciiOutput.classList.remove('colored');
+                        }
+
+                        frameCount++;
+                    } catch (error) {
+                        console.error('Error processing video frame:', error);
+                    }
+                }, frameInterval);
+            });
+
+            stopVideoASCII.addEventListener('click', () => {
+                if (isVideoPlaying) {
+                    clearInterval(videoInterval);
+                    isVideoPlaying = false;
+                    previewVideo.pause();
+                    generateVideoASCII.style.display = 'inline-block';
+                    stopVideoASCII.style.display = 'none';
+                }
+            });
+
+            // Download as PNG functionality
+            const downloadImageASCII = document.getElementById('download-image-ascii');
+
+            function downloadAsPNG() {
+                html2canvas(asciiOutput).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'ascii-art.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            }
+
+            downloadImageASCII.addEventListener('click', downloadAsPNG);
+        });
+    </script>
+</body>
+
+</html>
